@@ -6,9 +6,7 @@
 
 `int` types may be cast as `long`
 """
-__authors__ = [
-  '"Andrew D. Yates" <andrew.yates@hhmds.com>',
-]
+__authors__ = ['"Andrew D. Yates" <andrew.yates@hhmds.com>']
 
 
 def bytes_to_int(s):
@@ -96,25 +94,6 @@ def lcm(n, m):
   return n * m // gcd(n, m)
 
 
-def mmi(n, m):
-  """Return Modular Multiplicative Inverse for n modulus m.
-
-  Args:
-    n: int > 1, coprime to `m`
-    m: int > 1, coprime to `n`
-  Returns:
-    int: x > 0 for "x*n |= 1 mod(m)"
-  Raises:
-    ValueError: no solution exists
-  """
-  x, y, gcd = solve_gcd_euclidean(n, m)
-  
-  if not gcd == 1 or x == 0:
-    raise ValueError("No solution for %d and %d." % (n, m))
-
-  return (x + m) % m
-    
-
 def solve_gcd_euclidean(n, m):
   """Return solution to extended euclidean algorithm.
 
@@ -138,3 +117,23 @@ def solve_gcd_euclidean(n, m):
 
   gcd = r
   return x, y, gcd
+
+
+def mmi(n, m):
+  """Return Modular Multiplicative Inverse for n modulus m.
+
+  Args:
+    n: int > 1, coprime to `m`
+    m: int > 1, coprime to `n`
+  Returns:
+    int: x > 0 for "x*n |= 1 mod(m)"
+  Raises:
+    ValueError: no solution exists
+  """
+  x, y, gcd = solve_gcd_euclidean(n, m)
+  
+  if not gcd == 1 or x == 0:
+    raise ValueError("No solution for %d and %d." % (n, m))
+
+  return (x + m) % m
+    

@@ -1,17 +1,12 @@
 #!/usr/bin/python2.5
 # -*- coding: utf-8 -*-
-#
-# Copyright 2010 HH
-#
+# Copyright © 2010 Andrew D. Yates
 # All Rights Reserved
-# hh@hhmds.com 2010
+"""RSA Asyncronous Encryption Key for Google App Engine datastore.
 
-"""Asynchronous Encryption Keys
+Does not include a prime number generator.
 """
-
-__authors__ = [
-  '"Andrew D. Yates" <andrew.yates@hhmds.com>',
-]
+__authors__ = ['"Andrew D. Yates" <andrew.yates@hhmds.com>']
 
 
 from google.appengine.ext import db
@@ -20,13 +15,10 @@ import integers
 
 
 class RSAKey(db.Model):
-  
-  """Asymmetric encryption and signature key.
+  """RSA encryption and signature key as a datastore model.
 
-  Components stored as < 500 bytestrings. Compute integers from bytestrings
-  for cryptography with self.refresh_values().
-
-  Assume "The Internet" is sufficient RSA blinding.
+  Key components stored as < 500 bytestrings. Compute integers from
+  bytestrings for cryptography with self.refresh_values().
   
   To Do:
   - key generation
@@ -56,7 +48,7 @@ class RSAKey(db.Model):
     return len(self.modulus)
   
   def refresh(self):
-    """Set cached integers from corresponding bytestrings.
+    """Refresh cached integers from corresponding bytestrings.
     """
     self.e = integers.get_int(self.exponent)
     self.n = integers.get_int(self.modulus)
@@ -96,17 +88,18 @@ class RSAKey(db.Model):
     c = pow(m, self.e, self.n)
     return integers.int_to_bytes(c)
     
-  def generate(self, size=128):
+  def generate(self, f_prime, size=128):
     """Generate a new RSA public / private key pair
     
     Args:
-      size: int of bytes in modulus (default 128)
+      f_prime: func(arg) returns prime number of arg byte length
+      size: int of modulus byte length (default 128)
     """
-    self.p = Prime(size/2)
-    self.q = Prime(size/2)
+    self.p = f_prime(size/2)
+    self.q = f_prime(size/2)
     self.n = self.p * self.q
     self.e = 65537
-    self.d = unmod(self.e, lcm(self.p-1, self.q-1))
+    self.d = integers.mmi(self.e, integers.lcm(self.p-1, self.q-1))
     self.dP = self.d % (self.p-1)
     self.dQ = self.d % (self.q-1)
-    self.qInv = unmod(self.q, self.p)
+    self.qInv = integers.mmi(self.q, self.p)
