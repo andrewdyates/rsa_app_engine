@@ -1,0 +1,6 @@
+rsa_app_engine
+Simple Python-native RSA cryptographic key implementation intended for Google App Engine
+
+Unstable, working copy
+
+Copyright © 2010 Andrew D. Yates
