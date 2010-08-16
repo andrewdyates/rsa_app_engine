@@ -14,45 +14,57 @@ from google.appengine.ext import db
 import integers
 
 
+EXP = 65537
+
+
+class LongProperty(db.Property):
+  """Arbitrarily long integer stored as a bytestring."""
+  data_type = long
+
+  def get_value_for_datastore(self, model_instance):
+    s = super(LongProperty, self).get_value_for_datastore(model_instance)
+    return integers.int_to_bytes(s)
+
+  def make_value_from_datastore(self, value):
+    if value is None:
+      return None
+    return integers.bytes_to_int(value)
+
+
 class RSAKey(db.Model):
   """RSA encryption and signature key as a datastore model.
 
-  Key components stored as < 500 bytestrings. Compute integers from
-  bytestrings for cryptography with self.refresh_values().
-  
-  To Do:
-  - key generation
-  - PEM export
-  - private blinding
-  - add p, q, dP, dQ, qInv
-  - Chinese Remainder Theorem computation
-
   Attributes:
-    e: int of `self.exponent` bytes
-    n: int of `self.modulus` bytes
-    d: int of `self.decryption` exponent bytes
-    ...
+    size: int byte length of key modulus
+
+  Properties:
+    exponent: LongProperty int
+    modulus: LongProperty int, public key component
+    decrypt: LongProperty int, private key component
+
+  Example:
+    Assume `db_key` maps to a valid public/private RSAKey in the datastore.
+    >>> key = RSAKey.get(db_key)
+    ... cypher = key.private(message)
+    ... message2 = key.public(cypher)
+    ... assert message == message2
+  
+  Future improvements:
+    * prime number generation
+    * PEM export
+    * private blinding
+    * add p, q, dP, dQ, qInv
+    * Chinese Remainder Theorem computation
+    * benchmarks and timing attack profiling
   """
   
-  exponent = db.ByteStringProperty(required=True)
-  modulus = db.ByteStringProperty(required=True)
-  decrypt = db.ByteStringProperty()
-
-  def __init__(self, *args, **kwds):
-    """Get integers from bytestrings saved in data"""
-    super(RSAKey, self).__init__(*args, **kwds)
-    self.refresh()
+  exponent = LongProperty(required=True, default=EXP)
+  modulus = LongProperty(required=True)
+  decrypt = LongProperty()
   
   @property
   def size(self):
-    return len(self.modulus)
-  
-  def refresh(self):
-    """Refresh cached integers from corresponding bytestrings.
-    """
-    self.e = integers.get_int(self.exponent)
-    self.n = integers.get_int(self.modulus)
-    self.d = integers.get_int(self.decrypt)
+    return len(integers.int_to_bytes(self.modulus))
     
   def private(self, data):
     """Private Key Transform: decrypt, sign
@@ -62,15 +74,18 @@ class RSAKey(db.Model):
     Returns:
       str: of bytestring of transformed `data`
     Raises:
-      ValueError, AttributeError
+      ValueError: Data too long for key size.
+      AttributeError: No private component in encryption key.
     """
-    c = integers.bytes_to_int(data)
-    if self.n <= c:
-      raise ValueError, "Data too long for key size"
-    if not self.d:
-      raise AttributeError, "No private component"
-    m = pow(c, self.d, self.n)
-    return integers.int_to_bytes(m)
+    cypher = integers.bytes_to_int(data)
+    
+    if self.modulus <= cypher:
+      raise ValueError, "Data too long for key size."
+    elif not self.decrypt:
+      raise AttributeError, "No private component in encryption key."
+    
+    message = pow(cypher, self.decrypt, self.modulus)
+    return integers.int_to_bytes(message)
 
   def public(self, data):
     """Public Key Transform: encrypt, verify
@@ -80,26 +95,28 @@ class RSAKey(db.Model):
     Returns:
       str: of bytestring of transformed `data`
     Raises:
-      ValueError
+      ValueError: Data too long for key size.
     """
-    m = integers.bytes_to_int(data)
-    if self.n <= m:
-      raise ValueError, "Data too long for key size"
-    c = pow(m, self.e, self.n)
-    return integers.int_to_bytes(c)
+    message = integers.bytes_to_int(data)
+    
+    if self.modulus <= message:
+      raise ValueError, "data too long for key size"
+    
+    cypher = pow(message, self.exponent, self.modulus)
+    return integers.int_to_bytes(cypher)
     
   def generate(self, f_prime, size=128):
-    """Generate a new RSA public / private key pair
+    """Generate a new RSA public and private key pair.
+
+    This function is not tested.
     
     Args:
       f_prime: func(arg) returns prime number of arg byte length
       size: int of modulus byte length (default 128)
     """
-    self.p = f_prime(size/2)
-    self.q = f_prime(size/2)
-    self.n = self.p * self.q
-    self.e = 65537
-    self.d = integers.mmi(self.e, integers.lcm(self.p-1, self.q-1))
-    self.dP = self.d % (self.p-1)
-    self.dQ = self.d % (self.q-1)
-    self.qInv = integers.mmi(self.q, self.p)
+    p = f_prime(size/2)
+    q = f_prime(size/2)
+    self.modulus = p * q
+    self.exponent = EXP
+    self.decrypt = integers.mmi(self.exponent, integers.lcm(p-1, q-1))
+    

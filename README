@@ -1,6 +1,18 @@
 rsa_app_engine
-Simple Python-native RSA cryptographic key implementation intended for Google App Engine
-
-Unstable, working copy
+Simple Python-native RSA cryptographic key implementation for Google App Engine
 
 Copyright © 2010 Andrew D. Yates
+
+http://github.com/andrewdyates/rsa_app_engine
+git@github.com:andrewdyates/rsa_app_engine.git
+
+Version 1
+
+===
+
+RSA keys are saved in the datastore as clearly labeled binary
+blobs, not as an opaque binary file. Import app_engine_shell to run
+test.py in the console.
+
+This module does not include a prime number generator and so cannot
+generate cryptographic keys itself.

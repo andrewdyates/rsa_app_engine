@@ -78,8 +78,8 @@ def gcd(n, m):
   Returns:
     int: of greatest common divisor of `n` and `m`
   """
-  a, b = max(n, m), min(n, m)
-  return solve_gcd_euclidean(a, b)[0]
+  x, y, r = solve_gcd_euclidean(n, m)
+  return r
  
 
 def lcm(n, m):
@@ -136,4 +136,4 @@ def mmi(n, m):
     raise ValueError("No solution for %d and %d." % (n, m))
 
   return (x + m) % m
-    
+
