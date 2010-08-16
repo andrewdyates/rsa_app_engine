@@ -2,9 +2,7 @@
 # -*- coding: utf-8 -*-
 # Copyright © 2010 Andrew D. Yates
 # All Rights Reserved
-"""RSA Asyncronous Encryption Key for Google App Engine datastore.
-
-Does not include a prime number generator.
+"""RSA Asynchronous Encryption Key for Google App Engine datastore.
 """
 __authors__ = ['"Andrew D. Yates" <andrew.yates@hhmds.com>']
 
@@ -38,9 +36,9 @@ class RSAKey(db.Model):
     size: int byte length of key modulus
 
   Properties:
-    exponent: LongProperty int
-    modulus: LongProperty int, public key component
-    decrypt: LongProperty int, private key component
+    exponent: LongProperty int; public key component
+    modulus: LongProperty int; public key component
+    decrypt: LongProperty int; private key component
 
   Example:
     Assume `db_key` maps to a valid public/private RSAKey in the datastore.
@@ -48,14 +46,6 @@ class RSAKey(db.Model):
     ... cypher = key.private(message)
     ... message2 = key.public(cypher)
     ... assert message == message2
-  
-  Future improvements:
-    * prime number generation
-    * PEM export
-    * private blinding
-    * add p, q, dP, dQ, qInv
-    * Chinese Remainder Theorem computation
-    * benchmarks and timing attack profiling
   """
   
   exponent = LongProperty(required=True, default=EXP)
@@ -112,10 +102,10 @@ class RSAKey(db.Model):
     
     Args:
       f_prime: func(arg) returns prime number of arg byte length
-      size: int of modulus byte length (default 128)
+      size: int of modulus byte length
     """
-    p = f_prime(size/2)
-    q = f_prime(size/2)
+    p = f_prime(size//2)
+    q = f_prime(size//2)
     self.modulus = p * q
     self.exponent = EXP
     self.decrypt = integers.mmi(self.exponent, integers.lcm(p-1, q-1))

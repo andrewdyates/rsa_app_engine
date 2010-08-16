@@ -16,3 +16,12 @@ test.py in the console.
 
 This module does not include a prime number generator and so cannot
 generate cryptographic keys itself.
+  
+Future improvements:
+
+  * prime number generation
+  * PEM export
+  * private blinding
+  * add p, q, dP, dQ, qInv
+  * Chinese Remainder Theorem computation
+  * benchmarks and timing attack profiling

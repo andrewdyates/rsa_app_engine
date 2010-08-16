@@ -15,7 +15,7 @@ def bytes_to_int(s):
   Args:
     s: str of bytes
   Returns:
-    int: numeric interpreation of binary string `s`
+    int: numeric interpretation of binary string `s`
   """
   # int type casts may return a long type
   return int(s.encode('hex'), 16)
@@ -36,7 +36,7 @@ def int_to_bytes(num):
   if not is_natural(num, include_zero=True):
     raise ValueError("%s is not a non-negative integer.")
   hexed = "%x" % num
-  # align hexademical string to byte boundaries
+  # align hexadecimal string to byte boundaries
   if len(hexed) % 2 == 1:
     hexed = '0%s' % hexed
   return hexed.decode('hex')
