@@ -6,7 +6,6 @@
 
 `int` types may be cast as `long`
 """
-__authors__ = ['"Andrew D. Yates" <andrew.yates@hhmds.com>']
 
 
 def bytes_to_int(s):
