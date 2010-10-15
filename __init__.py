@@ -4,8 +4,6 @@
 # All Rights Reserved
 """RSA Asynchronous Encryption Key for Google App Engine datastore.
 """
-__authors__ = ['"Andrew D. Yates" <andrew.yates@hhmds.com>']
-
 
 from google.appengine.ext import db
 
