@@ -7,7 +7,6 @@
 `int` types may be cast as `long`
 """
 
-
 def bytes_to_int(s):
   """Return converted bytestring to integer.
 
