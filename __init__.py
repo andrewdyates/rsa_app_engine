@@ -6,9 +6,7 @@
 """
 
 from google.appengine.ext import db
-
 import integers
-
 
 EXP = 65537
 
